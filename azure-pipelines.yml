@@ -18,3 +18,26 @@ steps:
     chmod +x gradlew
     ./gradlew clean build
   displayName: 'Build'
+
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'Sonarcloud'
+    organization: 'devsecops-usach'
+    projectKey: 'DevSecOps-USACH_spring-clinic'
+    projectName: 'spring-clinic'
+  displayName: 'Preparing Sonarqube Environment'
+    
+- task: Gradle@3
+  inputs:
+    gradleWrapperFile: 'gradlew'
+    tasks: "sonarqube"
+    javaHomeOption: 'JDKVersion'
+    sonarQubeRunAnalysis: true
+    sqGradlePluginVersionChoice: 'specify'
+    sonarQubeGradlePluginVersion: '3.3'
+  displayName: 'Analyze current Branch'
+    
+- task: SonarCloudPublish@1
+  inputs:
+    pollingTimeoutSec: '300'
+  displayName: 'Publish Analysis Results'
