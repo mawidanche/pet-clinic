@@ -3,21 +3,21 @@ pool:
 
 steps:
 
-#- task: Gradle@3
-#  inputs:
-#    gradleWrapperFile: 'gradlew'
-#    tasks: 'build'
-#    publishJUnitResults: true
-#    testResultsFiles: '**/TEST-*.xml'
-#    javaHomeOption: 'JDKVersion'
-#    sonarQubeRunAnalysis: false
-#    spotBugsAnalysis: false
-#  displayName: 'Build Plugin'
+- task: Gradle@3
+  inputs:
+    gradleWrapperFile: 'gradlew'
+    tasks: 'build'
+    publishJUnitResults: true
+    testResultsFiles: '**/TEST-*.xml'
+    javaHomeOption: 'JDKVersion'
+    sonarQubeRunAnalysis: false
+    spotBugsAnalysis: false
+  displayName: 'Build Plugin'
 
-#- script: |
-#    chmod +x gradlew
-#    ./gradlew clean build
-#  displayName: 'Build'
+- script: |
+    chmod +x gradlew
+    ./gradlew clean build
+  displayName: 'Build'
 
 - task: SonarCloudPrepare@1
   inputs:
