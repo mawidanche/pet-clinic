@@ -22,7 +22,7 @@ steps:
 - task: SonarCloudPrepare@1
   inputs:
     SonarCloud: 'Sonarcloud'
-    organization: 'DevOps-Foundationv2'
+    organization: 'devops-foundationv2'
     projectKey: 'DevOps-Foundation-v2_pet-clinic'
     projectName: 'pet-clinic'
   displayName: 'Preparing Sonarqube Environment'
