@@ -14,10 +14,18 @@ steps:
     spotBugsAnalysis: false
   displayName: 'Build Plugin'
 
-- script: |
-    chmod +x gradlew
-    ./gradlew clean build
-  displayName: 'Build'
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)'
+    contents: |
+        **/build/libs/*.jar
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: appJar
+    publishLocation: 'Container'
 
 - task: SonarCloudPrepare@1
   inputs:
@@ -41,3 +49,83 @@ steps:
   inputs:
     pollingTimeoutSec: '300'
   displayName: 'Publish Analysis Results'
+
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'current'
+    downloadType: 'single'
+    artifactName: 'appJar'
+    downloadPath: '$(Pipeline.Workspace)'
+  displayName: Descarga Jar
+    
+- script: "mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs"  
+  displayName:  Se mueve JAR a carpeta raiz
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'Docker'
+    command: 'login'
+  displayName: Docker registry login
+    
+- task: Docker@2
+  inputs:
+    containerRegistry: 'Docker'
+    repository: 'clagosu/pet-clinic'
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
+    tags: latest
+  displayName: Build Image
+
+- task: Docker@2
+  displayName: Docker push
+  inputs:
+    containerRegistry: 'Docker'
+    repository: 'clagosu/pet-clinic'
+    command: 'push'
+    tags: 'latest'
+
+- task: KubectlInstaller@0
+  inputs:
+    kubectlVersion: 'latest'
+  displayName: Instalacion Kubectl
+      
+- task: Kubernetes@1
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceEndpoint: 'Kubernetes'
+    namespace: 'default'
+    command: 'login'
+  displayName: AKS Login
+
+- task: Kubernetes@1
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceEndpoint: 'Kubernetes'
+    namespace: 'default'
+    command: 'apply'
+    arguments: '-f kubernetes/deployment-app.yaml'
+    secretType: 'dockerRegistry'
+    containerRegistryType: 'Azure Container Registry'
+    azureSubscriptionEndpointForSecrets: 'azure(9909fced-8203-44b6-af68-11f833a37e60)'
+  displayName: AKS deploy
+    
+- task: Kubernetes@1
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceEndpoint: 'Kubernetes'
+    namespace: 'default'
+    command: 'expose'
+    arguments: 'deployment petclinic-deployment --type=LoadBalancer --name=pet-clinic'
+    secretType: 'dockerRegistry'
+    containerRegistryType: 'Azure Container Registry'
+  continueOnError: true
+  displayName: Expose deployment
+    
+- script: |
+    ipApp=$(kubectl get services pet-clinic --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    echo $ipApp
+    URLApp=http://$ipApp:8085
+    echo $URLApp
+    echo "##vso[task.setvariable variable=appDeploy;isOutput=true]$URLApp"
+  name: getip
+  displayName: Get IP
