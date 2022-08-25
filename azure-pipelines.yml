@@ -30,7 +30,7 @@ steps:
 - task: SonarCloudPrepare@1
   inputs:
     SonarCloud: 'Sonarcloud'
-    organization: 'devops-foundationv2'
+    organization: 'mawidanche'
     projectKey: 'DevOps-Foundation-v2_pet-clinic'
     projectName: 'pet-clinic'
   displayName: 'Preparing Sonarqube Environment'
@@ -70,7 +70,7 @@ steps:
 - task: Docker@2
   inputs:
     containerRegistry: 'Docker'
-    repository: 'clagosu/pet-clinic'
+    repository: 'mawidanche/pet-clinic'
     command: 'build'
     Dockerfile: '**/Dockerfile'
     tags: latest
@@ -80,7 +80,7 @@ steps:
   displayName: Docker push
   inputs:
     containerRegistry: 'Docker'
-    repository: 'clagosu/pet-clinic'
+    repository: 'mawidanche/pet-clinic'
     command: 'push'
     tags: 'latest'
 
