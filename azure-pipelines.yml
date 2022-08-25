@@ -63,13 +63,13 @@ steps:
 
 - task: Docker@2
   inputs:
-    containerRegistry: 'Docker'
+    containerRegistry: 'dockerHubMawidanche'
     command: 'login'
   displayName: Docker registry login
     
 - task: Docker@2
   inputs:
-    containerRegistry: 'Docker'
+    containerRegistry: 'dockerHubMawidanche'
     repository: 'mawidanche/pet-clinic'
     command: 'build'
     Dockerfile: '**/Dockerfile'
@@ -79,7 +79,7 @@ steps:
 - task: Docker@2
   displayName: Docker push
   inputs:
-    containerRegistry: 'Docker'
+    containerRegistry: 'dockerHubMawidanche'
     repository: 'mawidanche/pet-clinic'
     command: 'push'
     tags: 'latest'
